@@ -16,7 +16,7 @@ export const site = {
   intro:
     "I am an IT Manager and technology operations professional with experience implementing business systems, managing digital infrastructure, coordinating technology initiatives and leading operational teams.",
   /** Path under /public (e.g. "/portrait.jpg") once a real photograph exists. */
-  portrait: null as string | null,
+  portrait: "/images/emmanuel-lartey-portrait.jpg" as string | null,
   contact: {
     email: null as string | null,
     linkedin: null as string | null,

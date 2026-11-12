@@ -259,6 +259,46 @@ body {
   margin-top: 2rem;
 }
 
+/*
+ * Phones: the first screen is the name, a full-width portrait that takes all
+ * the remaining height, and the role beneath it. Everything else (positioning,
+ * intro, actions) waits below the fold and is revealed on scroll.
+ */
+@media (max-width: 47.999rem) {
+  .hero-section {
+    justify-content: flex-start;
+  }
+
+  .hero-grid {
+    grid-template-areas:
+      "name"
+      "portrait"
+      "role"
+      "positioning"
+      "description"
+      "cta";
+    /* Role block: top margin + rule + padding + two lines of text. */
+    --role-h: 4.75rem;
+  }
+
+  .hero-portrait {
+    width: 100%;
+    aspect-ratio: auto;
+    margin-top: 1.25rem;
+    height: max(
+      calc(
+        100svh - var(--header-h) - var(--hero-pt) - var(--hero-pb) -
+          var(--name-size) * 1.68 - 1.25rem - var(--role-h) - 1rem
+      ),
+      14rem
+    );
+  }
+
+  .hero-positioning {
+    margin-top: 3rem;
+  }
+}
+
 @media (min-width: 48rem) {
   .hero-grid {
     grid-template-columns: calc(100% - var(--lartey)) 1fr;

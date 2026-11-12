@@ -12,13 +12,13 @@ export function Hero() {
             <span>{site.lastName}</span>
           </h1>
 
-          {/* Fixed 4:5 frame. A real photograph drops in via `site.portrait`. */}
+          {/* 4:5 frame on larger screens, full-bleed fill on phones (see globals.css). */}
           <AssetFrame
             kind="Portrait"
             ratio="4:5"
             label={`Professional photograph of ${site.name}`}
             src={site.portrait}
-            sizes="(min-width: 48rem) 30vw, 60vw"
+            sizes="(min-width: 48rem) 30vw, 100vw"
             priority
             className="hero-portrait aspect-[4/5]"
           />
