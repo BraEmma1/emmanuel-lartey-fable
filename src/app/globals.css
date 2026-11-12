@@ -1,26 +1,382 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ── Design tokens ────────────────────────────────────────── */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
+  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  --color-ink: #17153b; /* dark primary: deep indigo ink */
+  --color-stone: #e9eae6; /* neutral ground */
+  --color-panel: #f3f3f0; /* lighter surface */
+  --color-tone: #d8d9d2; /* placeholder fields */
+  --color-saffron: #f5a800; /* the single accent */
+  --color-muted: #55546e; /* secondary text on stone */
+  --color-haze: #b3b2cc; /* secondary text on ink */
+}
+
+:root {
+  --gutter: clamp(1.25rem, 3.4vw, 3rem);
+  --header-h: 4rem;
+  --focus: var(--color-ink);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Base ─────────────────────────────────────────────────── */
+
+html {
+  scroll-padding-top: calc(var(--header-h) + 1rem);
+  scrollbar-color: var(--color-ink) var(--color-stone);
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-stone);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  caret-color: var(--color-saffron);
+}
+
+::selection {
+  background: var(--color-saffron);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.on-dark {
+  --focus: var(--color-saffron);
+}
+
+.on-dark ::selection {
+  background: var(--color-stone);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ── Layout and type primitives ───────────────────────────── */
+
+@layer components {
+  .shell {
+    margin-inline: auto;
+    max-width: 105rem;
+    padding-inline: var(--gutter);
+  }
+
+  .section {
+    padding-block: clamp(4.5rem, 10vw, 9.5rem);
+  }
+
+  /* Archivo at normal width: section headings and large statements. */
+  .display {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 0.96;
+    text-wrap: balance;
+  }
+
+  /* Archivo expanded and heavy: the name, numerals, the wordmark. */
+  .wide {
+    font-family: var(--font-display);
+    font-stretch: 125%;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .section-title {
+    font-size: clamp(2.75rem, 7.4vw, 7.75rem);
+  }
+
+  .meta {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  .link {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.3em;
+    transition: text-decoration-color 0.2s;
+  }
+
+  .link:hover {
+    text-decoration-color: var(--color-saffron);
+    text-decoration-thickness: 2px;
+  }
+
+  /* Placeholder fields: print-style crop marks in each corner. */
+  .crop-marks {
+    --m: 0.875rem; /* inset */
+    --l: 0.75rem; /* mark length */
+    --c: color-mix(in srgb, var(--color-ink) 55%, transparent);
+    background-color: var(--color-tone);
+    background-image:
+      linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)),
+      linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)),
+      linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)),
+      linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c));
+    background-repeat: no-repeat;
+    background-size:
+      var(--l) 1px,
+      1px var(--l),
+      var(--l) 1px,
+      1px var(--l),
+      var(--l) 1px,
+      1px var(--l),
+      var(--l) 1px,
+      1px var(--l);
+    background-position:
+      left var(--m) top var(--m),
+      left var(--m) top var(--m),
+      right var(--m) top var(--m),
+      right var(--m) top var(--m),
+      left var(--m) bottom var(--m),
+      left var(--m) bottom var(--m),
+      right var(--m) bottom var(--m),
+      right var(--m) bottom var(--m);
+  }
+}
+
+/* ── Hero composition ─────────────────────────────────────── */
+/*
+ * The name is sized from the container so "EMMANUEL" always spans the full
+ * measure. "LARTEY" is shorter and sits flush right, which leaves a gap on the
+ * second line: the portrait rises into that gap, its top edge aligned with the
+ * cap height of the second line.
+ */
+
+/* The hero fills the first screen beneath the header. */
+.hero-section {
+  --hero-pt: clamp(1.5rem, 3vw, 2.75rem);
+  --hero-pb: clamp(2rem, 3.4vw, 3rem);
+  /* Same measure as the rest of the page; any spare height is shared evenly. */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 105rem;
+  margin-inline: auto;
+  min-height: calc(100svh - var(--header-h));
+  padding: var(--hero-pt) var(--gutter) var(--hero-pb);
+  overflow-x: clip;
+}
+
+.hero {
+  container-type: inline-size;
+}
+
+.hero-grid {
+  /* Width of "EMMANUEL" in em at this weight and width, plus a small margin. */
+  /* Capped by viewport height so both lines always fit on the first screen. */
+  --name-size: min(calc(100cqw / 7.36), 26svh);
+  /* Width of "LARTEY": the copy column starts exactly under its L. */
+  --lartey: calc(var(--name-size) * 5.033);
+  display: grid;
+  /* Small screens: one column, every block on the same left edge. */
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "name"
+    "role"
+    "portrait"
+    "positioning"
+    "description"
+    "cta";
+}
+
+.hero-name {
+  grid-area: name;
+  font-size: var(--name-size);
+  line-height: 0.84;
+  text-transform: uppercase;
+  white-space: nowrap;
+  /* Optical alignment: cancel the E's side bearing so its stem sits on the margin. */
+  margin-left: -0.084em;
+}
+
+.hero-name > span {
+  display: block;
+}
+
+.hero-name > span:last-child {
+  text-align: right;
+}
+
+.hero-portrait {
+  grid-area: portrait;
+  width: 62%;
+  margin-top: 1.75rem;
+}
+
+/* Role: job title in ink, field of work beside it in the secondary tone. */
+.hero-role {
+  grid-area: role;
+  margin-top: 0.875rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.hero-role > span {
+  display: block;
+}
+
+.hero-role > span:last-child {
+  margin-top: 0.25rem;
+  color: var(--color-muted);
+  font-weight: 500;
+}
+
+.hero-positioning {
+  grid-area: positioning;
+  margin-top: 2rem;
+  /* Fill the measure on small screens rather than balancing into short lines. */
+  text-wrap: pretty;
+}
+
+.hero-description {
+  grid-area: description;
+  margin-top: 1.25rem;
+}
+
+.hero-cta {
+  grid-area: cta;
+  margin-top: 2rem;
+}
+
+@media (min-width: 48rem) {
+  .hero-grid {
+    grid-template-columns: calc(100% - var(--lartey)) 1fr;
+    grid-template-rows: auto auto auto auto 1fr;
+    grid-template-areas:
+      "name name"
+      "portrait role"
+      "portrait positioning"
+      "portrait description"
+      "portrait cta";
+  }
+
+  .hero-portrait {
+    /* Height left on the first screen below the first line of the name. */
+    --ph-fit: calc(
+      100svh - var(--header-h) - var(--hero-pt) - var(--hero-pb) -
+        var(--name-size) * 0.908
+    );
+    /* Always a 4:5 portrait frame, as wide as the column and screen allow. */
+    width: min(
+      calc((100cqw - var(--lartey)) * 0.9),
+      calc(max(var(--ph-fit), 20rem) / 1.25)
+    );
+    align-self: start;
+    /* Pull up beside the second line; top edge meets its cap height. */
+    margin-top: calc(var(--name-size) * -0.772);
+  }
+
+  .hero-role {
+    align-self: start;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.5rem;
+    margin-top: calc(var(--name-size) * 0.1);
+    padding: 1rem 0 0;
+    border-top: 1px solid var(--color-ink);
+    font-size: 1.125rem;
+  }
+
+  .hero-role > span:last-child {
+    margin-top: 0;
+  }
+
+  .hero-positioning {
+    margin-top: 2rem;
+    text-wrap: balance;
+  }
+
+  .hero-description {
+    margin-top: 1.5rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .hero-grid {
+    grid-template-columns: calc(100% - var(--lartey)) 1.25fr 1fr;
+    grid-template-rows: auto auto auto 1fr;
+    column-gap: 0;
+    grid-template-areas:
+      "name name name"
+      "portrait role role"
+      "portrait positioning description"
+      "portrait positioning cta";
+  }
+
+  /* The two halves of the role head the two columns beneath them. */
+  .hero-role {
+    display: grid;
+    grid-template-columns: subgrid;
+    gap: 0;
+  }
+
+  .hero-positioning {
+    margin-top: 2.5rem;
+    padding-right: 3rem;
+  }
+
+  .hero-description {
+    margin-top: 2.75rem;
+  }
+
+  /* Actions sit on the same baseline as the foot of the portrait. */
+  .hero-cta {
+    align-self: end;
+  }
+}
+
+/* One authored moment: the name rises into place, then the portrait opens. */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-name > span {
+    animation: name-rise 1s var(--ease-out) both;
+  }
+
+  .hero-name > span:last-child {
+    animation-delay: 0.09s;
+  }
+
+  .hero-portrait {
+    animation: portrait-open 1.1s var(--ease-out) 0.25s both;
+  }
+
+  @keyframes name-rise {
+    from {
+      clip-path: inset(0 0 100% 0);
+      transform: translateY(0.35em);
+    }
+    to {
+      clip-path: inset(0 0 -5% 0);
+      transform: none;
+    }
+  }
+
+  @keyframes portrait-open {
+    from {
+      clip-path: inset(0 0 100% 0);
+    }
+    to {
+      clip-path: inset(0);
+    }
+  }
 }
