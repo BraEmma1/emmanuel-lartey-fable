@@ -1,3 +1,4 @@
+import { Disclosure } from "@/components/ui/Disclosure";
 import { expertiseIntro } from "@/content/home";
 import { getSkillAreas } from "@/content/queries";
 import { additionalCapability } from "@/content/skills";
@@ -29,7 +30,7 @@ export function Expertise() {
             {getSkillAreas().map((area, index) => (
               <li
                 key={area.id}
-                className="grid gap-x-6 gap-y-5 border-t border-ink py-8 md:grid-cols-8 lg:py-10"
+                className="grid gap-x-6 gap-y-5 border-t border-ink py-6 md:grid-cols-8 md:py-8 lg:py-10"
               >
                 <h3 className="display flex gap-5 text-[clamp(1.75rem,2.7vw,2.625rem)] leading-[1.02] md:col-span-4">
                   <span aria-hidden="true" className="text-muted">
@@ -37,14 +38,24 @@ export function Expertise() {
                   </span>
                   <span>{area.title}</span>
                 </h3>
-                <div className="md:col-span-4">
-                  <p className="max-w-[52ch] text-[1.0625rem] leading-[1.55]">{area.text}</p>
-                  <ul className="mt-5 text-base leading-[1.7] text-muted">
-                    {area.skills.map((skill) => (
-                      <li key={skill.id}>{skill.label}</li>
-                    ))}
-                  </ul>
-                </div>
+                <Disclosure
+                  className="md:col-span-4"
+                  context={area.title}
+                  showLabel="View skills"
+                  hideLabel="Hide skills"
+                  summary={
+                    <>
+                      <p className="max-w-[52ch] text-[1.0625rem] leading-[1.55]">
+                        {area.text}
+                      </p>
+                      <ul className="dz-extra mt-5 text-base leading-[1.7] text-muted">
+                        {area.skills.map((skill) => (
+                          <li key={skill.id}>{skill.label}</li>
+                        ))}
+                      </ul>
+                    </>
+                  }
+                />
               </li>
             ))}
           </ol>

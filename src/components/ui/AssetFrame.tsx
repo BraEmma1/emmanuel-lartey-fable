@@ -48,7 +48,7 @@ export function AssetFrame({
     <figure
       role="img"
       aria-label={`Placeholder. ${kind} to be supplied: ${label}`}
-      className={`crop-marks relative flex flex-col justify-between p-7 text-ink ${className}`}
+      className={`crop-marks relative flex flex-col justify-between p-5 text-ink md:p-7 ${className} max-md:aspect-auto max-md:min-h-40`}
     >
       <p className="flex items-center justify-between gap-3 text-sm font-medium">
         <span className="flex items-center gap-2">

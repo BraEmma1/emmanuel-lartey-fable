@@ -22,6 +22,21 @@
   --header-h: 4rem;
   --focus: var(--color-ink);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Vertical rhythm. Phones override these below; tablet and up are unchanged. */
+  --sp-section: clamp(4.5rem, 10vw, 9.5rem); /* homepage sections */
+  --sp-field: clamp(4rem, 8vw, 7.5rem); /* coloured chapters */
+  --sp-chapter: clamp(3.5rem, 7vw, 6.5rem); /* detail chapters */
+  --sp-chapter-compact: clamp(2.75rem, 4.5vw, 4.25rem);
+}
+
+@media (max-width: 47.999rem) {
+  :root {
+    --sp-section: 3.5rem;
+    --sp-field: 3.25rem;
+    --sp-chapter: 2.75rem;
+    --sp-chapter-compact: 2.25rem;
+  }
 }
 
 /* ── Base ─────────────────────────────────────────────────── */
@@ -75,7 +90,7 @@ body {
   }
 
   .section {
-    padding-block: clamp(4.5rem, 10vw, 9.5rem);
+    padding-block: var(--sp-section);
   }
 
   /* Archivo at normal width: section headings and large statements. */
@@ -418,5 +433,80 @@ body {
     to {
       clip-path: inset(0);
     }
+  }
+}
+
+/* ── Progressive disclosure (phones only) ─────────────────── */
+/*
+ * See Disclosure.tsx. Below the tablet breakpoint the control is shown and
+ * collapsed parts are hidden; from the breakpoint up the control is not
+ * displayed and nothing is hidden.
+ */
+
+.dz-trigger {
+  display: none;
+}
+
+.dz-icon {
+  position: relative;
+  flex: none;
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.dz-icon::before,
+.dz-icon::after {
+  content: "";
+  position: absolute;
+  background: currentColor;
+}
+
+.dz-icon::before {
+  left: 0;
+  right: 0;
+  top: calc(50% - 1px);
+  height: 2px;
+}
+
+.dz-icon::after {
+  top: 0;
+  bottom: 0;
+  left: calc(50% - 1px);
+  width: 2px;
+}
+
+/* The panel follows its summary the way blocks follow each other. */
+.dz > .dz-panel {
+  margin-top: 1.5rem;
+}
+
+.dz[data-open="true"] .dz-icon::after {
+  display: none;
+}
+
+@media (max-width: 47.999rem) {
+  .dz-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+    min-height: 3rem;
+    margin-top: 1rem;
+    border-top: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .dz-trigger:hover > span:first-child {
+    text-decoration: underline;
+    text-decoration-color: var(--color-saffron);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.3em;
+  }
+
+  .dz[data-open="false"] > .dz-panel,
+  .dz[data-open="false"] .dz-extra {
+    display: none;
   }
 }

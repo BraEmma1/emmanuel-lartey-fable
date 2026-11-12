@@ -35,16 +35,16 @@ export function DetailSection({
       ? "bg-panel"
       : "";
   const spacing = surface
-    ? "py-[clamp(4rem,8vw,7.5rem)]"
+    ? "py-(--sp-field)"
     : compact
-      ? "py-[clamp(2.75rem,4.5vw,4.25rem)]"
-      : "py-[clamp(3.5rem,7vw,6.5rem)]";
+      ? "py-(--sp-chapter-compact)"
+      : "py-(--sp-chapter)";
 
   return (
     <section id={id} aria-labelledby={`${id}-title`} className={field}>
       <div className="shell">
         <div
-          className={`grid gap-x-6 gap-y-8 lg:grid-cols-12 ${spacing} ${!surface && rule ? "border-t border-ink" : ""}`}
+          className={`grid gap-x-6 gap-y-5 md:gap-y-8 lg:grid-cols-12 ${spacing} ${!surface && rule ? "border-t border-ink" : ""}`}
         >
           <div className="lg:col-span-4">
             <div className="lg:sticky lg:top-[calc(var(--header-h)+2rem)]">
@@ -63,7 +63,7 @@ export function DetailSection({
             </div>
           </div>
 
-          <div className="space-y-9 lg:col-span-8 lg:space-y-11">
+          <div className="space-y-7 md:space-y-9 lg:col-span-8 lg:space-y-11">
             {children}
           </div>
         </div>

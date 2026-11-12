@@ -67,6 +67,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${archivo.variable} ${hanken.variable} antialiased`}
     >
       <body>
+        {/* Without JavaScript the disclosure controls cannot work: show everything. */}
+        <noscript>
+          <style>{`.dz-trigger{display:none!important}.dz[data-open] .dz-panel,.dz[data-open] .dz-extra{display:revert!important}`}</style>
+        </noscript>
         {/* The shell every page shares: header, main landmark, footer. */}
         <SiteHeader />
         <main id="content">{children}</main>

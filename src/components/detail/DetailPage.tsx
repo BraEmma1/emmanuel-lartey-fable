@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { Href } from "@/content/navigation";
+import { Disclosure } from "@/components/ui/Disclosure";
 import { DetailSection } from "./DetailSection";
 
 export type DetailPart = {
@@ -16,6 +17,8 @@ export type DetailFact = {
   value: string;
   /** Makes the value a link. Pass only when the destination is live. */
   href?: Href | null;
+  /** Context rather than the headline facts: waits behind a control on phones. */
+  secondary?: boolean;
 };
 
 type DetailPageProps = {
@@ -76,6 +79,28 @@ export function DetailPage({
     number: String(index + 1).padStart(2, "0"),
   }));
 
+  const factList = (
+    <dl>
+      {facts.map((fact) => (
+        <div
+          key={fact.label}
+          className={`border-b border-ink/25 py-3.5 first:pt-0 max-md:py-3 max-md:first:pt-0 ${fact.secondary ? "dz-extra" : ""}`}
+        >
+          <dt className="meta text-muted">{fact.label}</dt>
+          <dd className="display mt-1 text-[clamp(1.375rem,1.7vw,1.625rem)] font-medium max-md:text-[1.25rem] leading-[1.15] tracking-[-0.02em]">
+            {fact.href ? (
+              <Link href={fact.href} className="link">
+                {fact.value}
+              </Link>
+            ) : (
+              fact.value
+            )}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+
   return (
     <>
       <section aria-labelledby="record-title" className="shell">
@@ -109,26 +134,18 @@ export function DetailPage({
         </h1>
 
         {/* The overview: the facts, and the shape of the record at a glance. */}
-        <div className="mt-[clamp(2rem,4vw,3.5rem)] grid gap-x-6 gap-y-10 border-t border-ink pt-6 lg:grid-cols-12 lg:pt-7">
-          <dl className="lg:col-span-4">
-            {facts.map((fact) => (
-              <div
-                key={fact.label}
-                className="border-b border-ink/25 py-3.5 first:pt-0"
-              >
-                <dt className="meta text-muted">{fact.label}</dt>
-                <dd className="display mt-1 text-[clamp(1.375rem,1.7vw,1.625rem)] font-medium leading-[1.15] tracking-[-0.02em]">
-                  {fact.href ? (
-                    <Link href={fact.href} className="link">
-                      {fact.value}
-                    </Link>
-                  ) : (
-                    fact.value
-                  )}
-                </dd>
-              </div>
-            ))}
-          </dl>
+        <div className="mt-[clamp(2rem,4vw,3.5rem)] grid gap-x-6 gap-y-8 border-t border-ink pt-6 md:gap-y-10 lg:grid-cols-12 lg:pt-7">
+          {facts.some((fact) => fact.secondary) ? (
+            <Disclosure
+              className="lg:col-span-4"
+              context="Project facts"
+              showLabel="More facts"
+              hideLabel="Fewer facts"
+              summary={factList}
+            />
+          ) : (
+            <div className="lg:col-span-4">{factList}</div>
+          )}
 
           <div className="lg:col-span-8">
             <p className="display max-w-[36ch] text-[clamp(1.5rem,2.3vw,2.25rem)] font-medium leading-[1.12] tracking-[-0.025em]">
@@ -137,7 +154,7 @@ export function DetailPage({
 
             {overview?.length ? (
               <ul
-                className={`mt-8 grid gap-x-6 gap-y-7 lg:mt-9 ${overview.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}
+                className={`mt-6 grid gap-x-6 gap-y-6 md:mt-8 md:gap-y-7 lg:mt-9 ${overview.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}
               >
                 {overview.map((part) => (
                   <li
@@ -159,7 +176,7 @@ export function DetailPage({
 
         <nav
           aria-labelledby="contents-title"
-          className="pb-[clamp(3rem,6vw,5rem)] pt-[clamp(3rem,5vw,4.5rem)]"
+          className="pb-[clamp(3rem,6vw,5rem)] pt-[clamp(3rem,5vw,4.5rem)] max-md:pb-10 max-md:pt-9"
         >
           <h2 id="contents-title" className="meta text-muted">
             On this page

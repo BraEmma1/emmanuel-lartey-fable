@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { getEvidence } from "@/content/queries";
 import type {
   ContentBlock,
@@ -5,6 +6,7 @@ import type {
   InitiativesBlock,
   TeamBlock,
 } from "@/content/types";
+import { Disclosure } from "@/components/ui/Disclosure";
 import { EvidenceFigure } from "./EvidenceList";
 
 /*
@@ -16,6 +18,39 @@ const featureText =
   "display text-[clamp(1.375rem,1.85vw,1.75rem)] font-medium leading-[1.12]";
 const subheading = "display text-[clamp(1.5rem,2.1vw,2rem)] leading-[1.05]";
 const twoDigits = (index: number) => String(index + 1).padStart(2, "0");
+
+/*
+ * Progressive disclosure on phones (see Disclosure.tsx). A list or a run of
+ * steps longer than LONG shows its first SHOWN entries and offers the rest;
+ * the entries that wait carry the `dz-extra` class. Tablet and up show all.
+ */
+const LONG = 5;
+const SHOWN = 3;
+const waits = (index: number, total: number) =>
+  total > LONG && index >= SHOWN ? "dz-extra" : "";
+
+/** The disclosure around a long list or run of steps, or the bare content. */
+function RestOf({
+  total,
+  noun,
+  context,
+  children,
+}: {
+  total: number;
+  noun: string;
+  context: string;
+  children: ReactNode;
+}) {
+  if (total <= LONG) return <>{children}</>;
+  return (
+    <Disclosure
+      context={context}
+      showLabel={`Show ${total - SHOWN} more ${noun}`}
+      hideLabel={`Show fewer ${noun}`}
+      summary={children}
+    />
+  );
+}
 
 /** Colour roles that differ between the light and dark surfaces. */
 function palette(dark: boolean) {
@@ -126,7 +161,7 @@ function Initiatives({ block, dark }: BlockProps<InitiativesBlock>) {
   const tone = palette(dark);
 
   return (
-    <ol className="space-y-[clamp(3.5rem,6vw,5.5rem)]">
+    <ol className="space-y-12 md:space-y-[clamp(3.5rem,6vw,5.5rem)]">
       {block.items.map((item, index) => {
         const rows = [
           ["The need", item.need],
@@ -146,33 +181,47 @@ function Initiatives({ block, dark }: BlockProps<InitiativesBlock>) {
               {item.title}
             </h3>
 
-            <dl className="mt-7 lg:mt-9">
-              {rows.map(([label, text]) => (
-                <div
-                  key={label}
-                  className={`grid gap-x-6 gap-y-1.5 border-t ${tone.rule} py-5 md:grid-cols-8`}
-                >
-                  <dt className="meta md:col-span-2 md:pt-1">{label}</dt>
-                  <dd
-                    className={`max-w-[54ch] text-[1.125rem] leading-[1.5] md:col-span-6 ${dark ? tone.body : ""}`}
-                  >
-                    {text}
-                  </dd>
-                </div>
-              ))}
+            {/* On phones the title and the outcome stay in view; the need, the
+                contribution and the solution open beneath. With no outcome
+                stated, the contribution stays instead. */}
+            <Disclosure
+              context={item.title}
+              summary={
+                <dl className="mt-5 md:mt-7 lg:mt-9">
+                  {rows.map(([label, text]) => (
+                    <div
+                      key={label}
+                      className={`grid gap-x-6 gap-y-1.5 border-t ${tone.rule} py-4 md:grid-cols-8 md:py-5 ${
+                        item.outcome || label !== "My contribution"
+                          ? "dz-extra"
+                          : ""
+                      }`}
+                    >
+                      <dt className="meta md:col-span-2 md:pt-1">{label}</dt>
+                      <dd
+                        className={`max-w-[54ch] text-[1.125rem] leading-[1.5] md:col-span-6 ${dark ? tone.body : ""}`}
+                      >
+                        {text}
+                      </dd>
+                    </div>
+                  ))}
 
-              {/* The outcome is the point of the entry: heavier rule, larger type. */}
-              {item.outcome ? (
-                <div
-                  className={`grid gap-x-6 gap-y-2 border-t-[3px] ${tone.heavy} pt-[calc(1.25rem-2px)] md:grid-cols-8`}
-                >
-                  <dt className="meta md:col-span-2 md:pt-1.5">Outcome</dt>
-                  <dd className={`${featureText} max-w-[34ch] md:col-span-6`}>
-                    {item.outcome}
-                  </dd>
-                </div>
-              ) : null}
-            </dl>
+                  {/* The outcome is the point of the entry: heavier rule, larger type. */}
+                  {item.outcome ? (
+                    <div
+                      className={`grid gap-x-6 gap-y-2 border-t-[3px] ${tone.heavy} pt-[calc(1.25rem-2px)] md:grid-cols-8`}
+                    >
+                      <dt className="meta md:col-span-2 md:pt-1.5">Outcome</dt>
+                      <dd
+                        className={`${featureText} max-w-[34ch] md:col-span-6`}
+                      >
+                        {item.outcome}
+                      </dd>
+                    </div>
+                  ) : null}
+                </dl>
+              }
+            />
           </li>
         );
       })}
@@ -189,40 +238,46 @@ function Timeline({
   steps,
   dark,
   nested,
+  folded,
+  context,
 }: {
   steps: { label?: string; title: string }[];
   dark: boolean;
   nested: boolean;
+  folded: boolean;
+  context: string;
 }) {
   const tone = palette(dark);
   const pairs = nested || steps.length === 2 || steps.length === 4;
+  // Inside a disclosure already: shown whole, never a second control.
+  const total = folded ? 0 : steps.length;
 
   return (
-    <ol
-      className={`grid ${pairs ? "sm:grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-3"}`}
-    >
-      {steps.map((step, index) => (
-        <li
-          key={step.title}
-          className={`relative border-t ${tone.strong} pb-9 pr-6 pt-6 before:absolute before:-top-[5px] before:left-0 before:size-[9px] ${dark ? "before:bg-saffron" : "before:bg-ink"}`}
-        >
-          <p
-            className={`wide text-[1.0625rem] leading-none ${dark ? tone.accent : tone.soft}`}
+    <RestOf total={total} noun="steps" context={context}>
+      <ol
+        className={`grid ${pairs ? "sm:grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-3"}`}
+      >
+        {steps.map((step, index) => (
+          <li
+            key={step.title}
+            className={`relative border-t ${tone.strong} pb-6 pr-6 pt-5 md:pb-9 md:pt-6 ${waits(index, total)} before:absolute before:-top-[5px] before:left-0 before:size-[9px] ${dark ? "before:bg-saffron" : "before:bg-ink"}`}
           >
-            <span className="sr-only">Step </span>
-            {twoDigits(index)}
-          </p>
-          {step.label ? (
-            <p className="meta mt-4">{step.label}</p>
-          ) : null}
-          <p
-            className={`${featureText} ${step.label ? "mt-1.5 max-w-[20ch]" : "mt-4 max-w-[16ch]"}`}
-          >
-            {step.title}
-          </p>
-        </li>
-      ))}
-    </ol>
+            <p
+              className={`wide text-[1.0625rem] leading-none ${dark ? tone.accent : tone.soft}`}
+            >
+              <span className="sr-only">Step </span>
+              {twoDigits(index)}
+            </p>
+            {step.label ? <p className="meta mt-4">{step.label}</p> : null}
+            <p
+              className={`${featureText} ${step.label ? "mt-1.5 max-w-[20ch]" : "mt-4 max-w-[16ch]"}`}
+            >
+              {step.title}
+            </p>
+          </li>
+        ))}
+      </ol>
+    </RestOf>
   );
 }
 
@@ -239,37 +294,70 @@ function TimelineLog({
 }) {
   const tone = palette(dark);
 
+  // On phones the stages stay listed by name; their descriptions open together.
+  const describes = steps.every((step) => step.label);
+
   return (
-    <ol>
-      {steps.map((step, index) => (
-        <li
-          key={step.title}
-          className={`relative grid gap-x-6 gap-y-3 border-t ${tone.strong} pb-8 pt-6 before:absolute before:-top-[5px] before:left-0 before:size-[9px] md:grid-cols-8 ${dark ? "before:bg-saffron" : "before:bg-ink"}`}
-        >
-          <p className="flex items-baseline gap-4 md:col-span-3">
-            <span
-              className={`wide text-[1.0625rem] leading-none ${dark ? tone.accent : tone.soft}`}
+    <Disclosure
+      context="Description of each stage"
+      showLabel="View stage details"
+      hideLabel="Hide stage details"
+      summary={
+        <ol>
+          {steps.map((step, index) => (
+            <li
+              key={step.title}
+              className={`relative grid gap-x-6 gap-y-3 border-t ${tone.strong} pb-5 pt-5 md:pb-8 md:pt-6 before:absolute before:-top-[5px] before:left-0 before:size-[9px] md:grid-cols-8 ${dark ? "before:bg-saffron" : "before:bg-ink"}`}
             >
-              <span className="sr-only">Stage </span>
-              {twoDigits(index)}
-            </span>
-            {step.label ? (
-              <span className={subheading}>{step.label}</span>
-            ) : null}
-          </p>
-          <p
-            className={`max-w-[34ch] text-[1.1875rem] leading-[1.45] md:col-span-5 ${dark ? tone.body : ""}`}
-          >
-            {step.title}
-          </p>
-        </li>
-      ))}
-    </ol>
+              <p className="flex items-baseline gap-4 md:col-span-3">
+                <span
+                  className={`wide text-[1.0625rem] leading-none ${dark ? tone.accent : tone.soft}`}
+                >
+                  <span className="sr-only">Stage </span>
+                  {twoDigits(index)}
+                </span>
+                {step.label ? (
+                  <span className={subheading}>{step.label}</span>
+                ) : null}
+              </p>
+              <p
+                className={`max-w-[34ch] text-[1.1875rem] leading-[1.45] md:col-span-5 ${dark ? tone.body : ""} ${describes ? "dz-extra" : ""}`}
+              >
+                {step.title}
+              </p>
+            </li>
+          ))}
+        </ol>
+      }
+    />
   );
 }
 
 function Group({ block, dark }: BlockProps<GroupBlock>) {
   const tone = palette(dark);
+  const [lead, ...rest] = block.blocks;
+
+  // On phones a group that opens with prose shows that prose and keeps the
+  // remaining blocks (a list, steps) behind a control. A group made only of
+  // a list or of its own prose is left whole; a long list trims itself.
+  const folds = lead?.kind === "prose" && rest.length > 0;
+  const body = folds ? (
+    <Disclosure
+      context={block.heading}
+      summary={<ContentBlocks blocks={[lead]} dark={dark} nested />}
+    >
+      <div className="space-y-6">
+        <ContentBlocks blocks={rest} dark={dark} nested folded />
+      </div>
+    </Disclosure>
+  ) : (
+    <ContentBlocks
+      blocks={block.blocks}
+      dark={dark}
+      nested
+      context={block.heading}
+    />
+  );
 
   return (
     <div
@@ -278,14 +366,18 @@ function Group({ block, dark }: BlockProps<GroupBlock>) {
       <h3 className={`${subheading} max-w-[16ch] md:col-span-3`}>
         {block.heading}
       </h3>
-      <div className="space-y-6 md:col-span-5">
-        <ContentBlocks blocks={block.blocks} dark={dark} nested />
-      </div>
+      <div className="space-y-6 md:col-span-5">{body}</div>
     </div>
   );
 }
 
-function Block({ block, dark, nested }: BlockProps<ContentBlock>) {
+function Block({
+  block,
+  dark,
+  nested,
+  folded,
+  context,
+}: BlockProps<ContentBlock> & { folded: boolean; context: string }) {
   const tone = palette(dark);
   const ItemHeading = nested ? "h4" : "h3";
   const columns = nested ? "" : "md:grid-cols-2";
@@ -309,32 +401,42 @@ function Block({ block, dark, nested }: BlockProps<ContentBlock>) {
       const row = `border-t ${tone.rule} py-3.5 text-[1.0625rem] font-medium leading-snug ${nested ? "last:border-b" : ""}`;
 
       // Numbered: the order is part of the meaning, so it stays one column.
+      const total = folded ? 0 : block.items.length;
+      const wait = (index: number) => (folded ? "" : waits(index, total));
+
       if (block.numbered) {
         return (
-          <ol>
-            {block.items.map((item, index) => (
-              <li key={item} className={`flex items-baseline gap-4 ${row}`}>
-                <span
-                  aria-hidden="true"
-                  className={`wide text-[0.9375rem] leading-none ${dark ? tone.accent : tone.soft}`}
+          <RestOf total={total} noun="items" context={context}>
+            <ol>
+              {block.items.map((item, index) => (
+                <li
+                  key={item}
+                  className={`flex items-baseline gap-4 ${row} ${wait(index)}`}
                 >
-                  {twoDigits(index)}
-                </span>
-                <span>{item}</span>
-              </li>
-            ))}
-          </ol>
+                  <span
+                    aria-hidden="true"
+                    className={`wide text-[0.9375rem] leading-none ${dark ? tone.accent : tone.soft}`}
+                  >
+                    {twoDigits(index)}
+                  </span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ol>
+          </RestOf>
         );
       }
 
       return (
-        <ul className={`grid gap-x-6 ${columns}`}>
-          {block.items.map((item) => (
-            <li key={item} className={row}>
-              {item}
-            </li>
-          ))}
-        </ul>
+        <RestOf total={total} noun="items" context={context}>
+          <ul className={`grid gap-x-6 ${columns}`}>
+            {block.items.map((item, index) => (
+              <li key={item} className={`${row} ${wait(index)}`}>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </RestOf>
       );
     }
 
@@ -360,6 +462,8 @@ function Block({ block, dark, nested }: BlockProps<ContentBlock>) {
           steps={block.steps.map((title) => ({ title }))}
           dark={dark}
           nested={nested}
+          folded={folded}
+          context={context}
         />
       );
 
@@ -367,7 +471,13 @@ function Block({ block, dark, nested }: BlockProps<ContentBlock>) {
       return block.layout === "log" ? (
         <TimelineLog steps={block.steps} dark={dark} />
       ) : (
-        <Timeline steps={block.steps} dark={dark} nested={nested} />
+        <Timeline
+          steps={block.steps}
+          dark={dark}
+          nested={nested}
+          folded={folded}
+          context={context}
+        />
       );
 
     case "beforeAfter":
@@ -412,10 +522,16 @@ export function ContentBlocks({
   blocks,
   dark = false,
   nested = false,
+  folded = false,
+  context = "this section",
 }: {
   blocks: ContentBlock[];
   dark?: boolean;
   nested?: boolean;
+  /** Already inside a disclosure: its lists are shown whole. */
+  folded?: boolean;
+  /** Names the surrounding section, so each control can say what it opens. */
+  context?: string;
 }) {
   return (
     <>
@@ -425,6 +541,8 @@ export function ContentBlocks({
           block={block}
           dark={dark}
           nested={nested}
+          folded={folded}
+          context={context}
         />
       ))}
     </>

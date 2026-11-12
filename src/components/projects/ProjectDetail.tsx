@@ -53,6 +53,7 @@ export function ProjectDetail({ project }: { project: ResolvedProject }) {
           block.kind === "feature" ? project.feature : block,
         )}
         dark={section.surface === "ink"}
+        context={section.heading}
       />
     ),
   }));
@@ -79,17 +80,24 @@ export function ProjectDetail({ project }: { project: ResolvedProject }) {
     });
   }
 
-  const facts: DetailFact[] = [
+  const candidates: (Omit<DetailFact, "value"> & { value?: string })[] = [
     { label: "Project", value: project.displayName },
     {
       label: "Organization",
       value: project.organization.name,
       href: engagements[0]?.href,
     },
-    { label: "Category", value: project.category.name },
+    { label: "Category", value: project.category.name, secondary: true },
     { label: "Contribution", value: project.contribution },
-    { label: "Technologies", value: project.technologies?.join(", ") },
-  ].filter((fact): fact is DetailFact => Boolean(fact.value));
+    {
+      label: "Technologies",
+      value: project.technologies?.join(", "),
+      secondary: true,
+    },
+  ];
+  const facts = candidates.filter((fact): fact is DetailFact =>
+    Boolean(fact.value),
+  );
 
   // Neighbours are other projects whose case studies are live.
   const studies = getProjectsWithPages();

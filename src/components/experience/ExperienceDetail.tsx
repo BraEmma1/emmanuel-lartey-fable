@@ -40,7 +40,11 @@ export function ExperienceDetail({ entry }: { entry: ResolvedExperience }) {
     heading: section.heading,
     surface: section.surface,
     content: (
-      <ContentBlocks blocks={section.blocks} dark={section.surface === "ink"} />
+      <ContentBlocks
+        blocks={section.blocks}
+        dark={section.surface === "ink"}
+        context={section.heading}
+      />
     ),
   }));
 

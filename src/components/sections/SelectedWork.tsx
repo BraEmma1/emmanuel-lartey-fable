@@ -1,9 +1,7 @@
 import { selectedWork } from "@/content/home";
-import {
-  getFeaturedProjects,
-  type ResolvedProject,
-} from "@/content/queries";
+import { getFeaturedProjects, type ResolvedProject } from "@/content/queries";
 import Link from "next/link";
+import { Disclosure } from "@/components/ui/Disclosure";
 import { Arrow } from "@/components/ui/Arrow";
 import { AssetFrame } from "@/components/ui/AssetFrame";
 
@@ -111,7 +109,7 @@ function ProjectEntry({ project }: { project: ResolvedProject }) {
         {project.number}
       </p>
 
-      <div className="mt-8 lg:col-span-9 lg:mt-0">
+      <div className="mt-6 md:mt-8 lg:col-span-9 lg:mt-0">
         <h3 className="display text-[clamp(2.125rem,4.8vw,4.75rem)]">
           <span className="sr-only">Project {project.number}: </span>
           {project.title}
@@ -124,36 +122,47 @@ function ProjectEntry({ project }: { project: ResolvedProject }) {
           <span className="text-muted">{project.category.label}</span>
         </p>
 
-        <div className="mt-10 grid gap-x-6 gap-y-8 md:grid-cols-9 lg:mt-16">
-          <div className="md:col-span-5">
-            <p className="max-w-[56ch] text-[1.1875rem] leading-[1.55]">
-              {project.summary}
-            </p>
-            {/* Shown only once the project's case study is live. */}
-            {project.href ? (
-              <Link
-                href={project.href}
-                className="link mt-5 inline-flex min-h-11 items-center gap-2.5 text-base font-medium"
-              >
-                Read the case study
-                <span className="sr-only">: {project.title}</span>
-                <Arrow direction="right" />
-              </Link>
-            ) : null}
-          </div>
-          <div className="border-t border-ink/25 pt-4 md:col-span-3 md:col-start-7">
-            <h4 className={featureLabel}>Demonstrated</h4>
-            <ul className="mt-3 text-base leading-[1.7]">
-              {project.skills.map((skill) => (
-                <li key={skill.id}>{skill.label}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
+        {/* On phones the summary and the case study link stay in view; the
+            skills and the project's feature open beneath. */}
+        <Disclosure
+          context={project.title}
+          showLabel="View project details"
+          hideLabel="Hide project details"
+          summary={
+            <>
+              <div className="mt-8 grid gap-x-6 gap-y-8 md:mt-10 md:grid-cols-9 lg:mt-16">
+                <div className="md:col-span-5">
+                  <p className="max-w-[56ch] text-[1.1875rem] leading-[1.55]">
+                    {project.summary}
+                  </p>
+                  {/* Shown only once the project's case study is live. */}
+                  {project.href ? (
+                    <Link
+                      href={project.href}
+                      className="link mt-5 inline-flex min-h-11 items-center gap-2.5 text-base font-medium"
+                    >
+                      Read the case study
+                      <span className="sr-only">: {project.title}</span>
+                      <Arrow direction="right" />
+                    </Link>
+                  ) : null}
+                </div>
+                <div className="dz-extra border-t border-ink/25 pt-4 md:col-span-3 md:col-start-7">
+                  <h4 className={featureLabel}>Demonstrated</h4>
+                  <ul className="mt-3 text-base leading-[1.7]">
+                    {project.skills.map((skill) => (
+                      <li key={skill.id}>{skill.label}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
 
-        <div className="mt-12 lg:mt-16">
-          <ProjectFeature project={project} />
-        </div>
+              <div className="dz-extra mt-10 md:mt-12 lg:mt-16">
+                <ProjectFeature project={project} />
+              </div>
+            </>
+          }
+        />
       </div>
     </article>
   );
@@ -171,7 +180,7 @@ export function SelectedWork() {
         </p>
       </div>
 
-      <div className="mt-[clamp(3rem,7vw,6rem)] space-y-[clamp(5rem,9vw,8.5rem)]">
+      <div className="mt-[clamp(3rem,7vw,6rem)] space-y-16 md:space-y-[clamp(5rem,9vw,8.5rem)]">
         {getFeaturedProjects().map((project) => (
           <ProjectEntry key={project.slug} project={project} />
         ))}
